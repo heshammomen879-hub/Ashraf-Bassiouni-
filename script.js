@@ -22,7 +22,7 @@ function triggerNotificationAlert() {
         const gain = audioCtx.createGain();
         osc.connect(gain);
         gain.connect(audioCtx.destination);
-        osc.frequency.value = 587.33; // D5 Note
+        osc.frequency.value = 587.33;
         gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
         osc.start();
         osc.stop(audioCtx.currentTime + 0.2);
@@ -84,7 +84,6 @@ function setGenderChoice(gender) {
     if (btnMale) btnMale.classList.toggle('active-male', gender === 'male');
     if (btnFemale) btnFemale.classList.toggle('active-female', gender === 'female');
 }
-setGenderChoice('male');
 
 function showSection(sectionId) {
     document.querySelectorAll('.app-section').forEach(sec => sec.classList.add('hidden'));
@@ -128,7 +127,6 @@ if (regForm) {
     });
 }
 
-// Check & Display Red Badges
 function checkNotificationBadges() {
     const currentUser = JSON.parse(localStorage.getItem('current_user'));
     if (!currentUser) return;
@@ -144,7 +142,6 @@ function checkNotificationBadges() {
     }
 }
 
-// Account Modal Actions
 function openUserAccountModal() {
     const currentUser = JSON.parse(localStorage.getItem('current_user'));
     if (!currentUser) return;
@@ -160,7 +157,7 @@ function openUserAccountModal() {
     const infoCard = document.getElementById('user-info-card');
     if (infoCard) {
         infoCard.innerHTML = `
-            <p class="font-bold">${currentUser.name}</p>
+            <p class="font-bold text-slate-100">${currentUser.name}</p>
             <p class="text-amber-400 font-semibold">${currentUser.grade}</p>
             <p class="text-slate-400 text-[11px]">${currentUser.school}</p>
         `;
@@ -183,7 +180,6 @@ function closeUserAccountModal() {
 
 function logoutUser() { localStorage.removeItem('current_user'); location.reload(); }
 
-// Send Message
 const studentForm = document.getElementById('student-msg-form');
 if (studentForm) {
     studentForm.addEventListener('submit', function(e) {
@@ -205,7 +201,6 @@ if (studentForm) {
     });
 }
 
-// Admin Control Panel Modal
 function openAdminModal() { 
     const modal = document.getElementById('admin-modal');
     if (modal) modal.classList.remove('hidden'); 
@@ -233,7 +228,6 @@ function verifyAdminPass() {
     }
 }
 
-// Admin Reply & Delete Functions
 function replyToStudent(phone) {
     const replyText = prompt("أدخل رد الأدمن/المستر للطالب:");
     if (!replyText) return;
@@ -285,10 +279,7 @@ function loadDashboardData() {
     });
 }
 
-// ==========================================
-// ميزات النشر والبحث والتاريخ والملفات المتقدمة
-// ==========================================
-
+// النشر الشامل وإدارة المرفقات للأقسام المختلفة
 async function publishNews() {
     const textInput = document.getElementById('admin-news-input');
     const linkInput = document.getElementById('admin-news-link');
@@ -315,7 +306,6 @@ async function publishNews() {
         return;
     }
 
-    // إعداد تاريخ النشر
     const now = new Date();
     const formattedDate = now.toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric' }) + 
                           ' - ' + now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
@@ -344,7 +334,7 @@ async function publishNews() {
     if (mobileBadge) mobileBadge.classList.remove('hidden');
     
     triggerNotificationAlert();
-    alert('تم نشر التنويه بنجاح في القسم المختار!');
+    alert('تم نشر المحتوى بنجاح في القسم المختار!');
     loadNews();
 }
 
@@ -352,7 +342,7 @@ function loadNews(filterKeyword = '') {
     const defaultNews = [{
         id: 1,
         section: "news",
-        text: "مرحباً بكم في التحديث الجديد لمنصة مستر أشرف بسيوني.",
+        text: "مرحباً بكم في منصة مستر أشرف بسيوني الرسمية.",
         link: "",
         fileData: "",
         fileType: "",
@@ -360,7 +350,7 @@ function loadNews(filterKeyword = '') {
     }];
 
     const rawNewsList = JSON.parse(localStorage.getItem('platform_news')) || defaultNews;
-    const sections = ['news', 'lectures', 'books', 'exams'];
+    const sections = ['news', 'courses', 'pdfs', 'quizzes'];
 
     sections.forEach(sec => {
         const container = document.getElementById(`${sec}-container`);
@@ -391,7 +381,7 @@ function loadNews(filterKeyword = '') {
                 if (fileType.startsWith('image/')) {
                     mediaHTML = `
                         <div class="rounded-lg overflow-hidden border border-slate-700 max-h-72 my-2">
-                            <img src="${fileData}" alt="صورة مرفقة" class="w-full h-full object-cover" onerror="this.style.display='none'" />
+                            <img src="${fileData}" alt="صورة مرفقة" class="w-full h-full object-cover" />
                         </div>
                     `;
                 } else if (fileType.startsWith('video/')) {
@@ -412,7 +402,7 @@ function loadNews(filterKeyword = '') {
             }
 
             return `
-                <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+                <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2 text-right">
                     ${date ? `<div class="text-[10px] text-amber-400/80 font-mono">📅 ${date}</div>` : ''}
                     ${text ? `<p class="font-bold text-xs text-slate-100">📌 ${text}</p>` : ''}
                     ${mediaHTML}
@@ -434,7 +424,7 @@ function handleSearch() {
     loadNews(searchVal);
 }
 
-// الدخول للبصمة
+// البصمة للأدمن
 async function registerAdminBiometrics() {
     if (!window.PublicKeyCredential) {
         alert("متصفحك لا يدعم تفعيل البصمة.");
