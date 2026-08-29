@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة مستر أشرف بسيوني</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Cairo', sans-serif; }
+        .theme-dark { background-color: #0f172a; color: #f8fafc; }
+        .theme-light { background-color: #f8fafc; color: #0f172a; }
+        .active-male { border-color: #3b82f6 !important; background-color: rgba(59, 130, 246, 0.1) !important; }
+        .active-female { border-color: #ec4899 !important; background-color: rgba(236, 72, 153, 0.1) !important; }
+    </style>
+</head>
+<body id="app-body" class="theme-dark min-h-screen">
+
+    <!-- شاشة البداية للتسجيل -->
+    <div id="intro-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center p-4 bg-slate-950">
+        <div class="text-center max-w-md w-full space-y-6">
+            <h1 id="typing-text" class="text-xl md:text-2xl font-bold text-amber-400 min-h-[60px]"></h1>
+            
+            <div id="registration-box" class="hidden bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4 shadow-xl">
+                <h2 class="text-lg font-bold">إنشاء حساب جديد</h2>
+                <form id="register-form" class="space-y-3">
+                    <input type="text" id="reg-name" placeholder="الاسم بالكامل" required class="w-full p-2.5 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-amber-400">
+                    <input type="tel" id="reg-phone" placeholder="رقم الهاتف" required class="w-full p-2.5 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-amber-400">
+                    <select id="reg-grade" class="w-full p-2.5 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-amber-400">
+                        <option value="الصف الأول الثانوي">الصف الأول الثانوي</option>
+                        <option value="الصف الثاني الثانوي">الصف الثاني الثانوي</option>
+                        <option value="الصف الثالث الثانوي">الصف الثالث الثانوي</option>
+                    </select>
+                    <input type="text" id="reg-school" placeholder="اسم المدرسة" required class="w-full p-2.5 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-amber-400">
+                    <input type="password" id="reg-pass" placeholder="كلمة السر" required class="w-full p-2.5 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-amber-400">
+                    
+                    <div class="flex gap-2 pt-1">
+                        <button type="button" id="btn-gender-male" onclick="setGenderChoice('male')" class="flex-1 py-2 border border-slate-700 rounded-lg text-xs font-bold transition">👨 طالب</button>
+                        <button type="button" id="btn-gender-female" onclick="setGenderChoice('female')" class="flex-1 py-2 border border-slate-700 rounded-lg text-xs font-bold transition">👩 طالبة</button>
+                    </div>
+
+                    <button type="submit" class="w-full py-3 bg-amber-400 text-slate-950 font-bold rounded-lg hover:bg-amber-300 transition text-sm">دخول المنصة</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- المنصة الرئيسية -->
+    <div id="main-app" class="hidden opacity-0 transition-opacity duration-500 min-h-screen flex flex-col">
+        <!-- الهيدر العلوي الأصلي -->
+        <header class="p-4 bg-slate-900 border-b border-slate-800 flex justify-between items-center sticky top-0 z-40">
+            <div class="flex items-center gap-2">
+                <span class="font-extrabold text-amber-400 text-base md:text-lg">Mr. Ashraf Bassiouny</span>
+            </div>
+            
+            <div class="flex items-center gap-2 md:gap-4">
+                <button onclick="toggleTheme()" id="theme-btn-text" class="text-xs bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 font-bold">🌙 الداكن</button>
+                <button onclick="openAdminModal()" class="text-xs bg-amber-400/10 text-amber-400 border border-amber-400/30 px-3 py-1.5 rounded-lg font-bold">👑 الأدمن</button>
+                <button onclick="openUserAccountModal()" class="relative text-xs bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 font-bold">
+                    👤 <span id="nav-user-name">الحساب</span>
+                    <span id="badge-user-nav" class="hidden absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-ping"></span>
+                </button>
+            </div>
+        </header>
+
+        <!-- كارت البروفايل والصورة والنبذة التعريفية الأصلية للمستر -->
+        <div class="p-4 max-w-4xl mx-auto w-full">
+            <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-col md:flex-row items-center gap-4 text-center md:text-right">
+                <div class="w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden border-2 border-amber-400 shrink-0 shadow-lg">
+                    <img src="teacher.jpg" alt="Mr. Ashraf Bassiouny" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150?text=Mr.+Ashraf'" />
+                </div>
+                <div class="space-y-1">
+                    <h2 class="text-lg md:text-xl font-extrabold text-amber-400">Mr. Ashraf Bassiouny</h2>
+                    <p class="text-xs text-slate-300 font-semibold">خبير تدريس اللغة الإنجليزية للمرحلة الثانوية</p>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">أهلاً بكم في المنصة التعليمية الرسمية. هنا تجدون كافة الشروحات، المذكرات، التنويهات الهامة، والاختبارات التفاعلية.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- نافيجيشن التنقل بين الأقسام الأصلي -->
+        <nav class="bg-slate-950 border-y border-slate-800 px-4 py-2 flex gap-2 overflow-x-auto text-xs font-bold">
+            <button onclick="showSection('news')" class="px-4 py-2 rounded-lg bg-amber-400 text-slate-950 whitespace-nowrap">📢 الأخبار والتنويهات</button>
+            <button onclick="showSection('lectures')" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 whitespace-nowrap">🎥 المحاضرات</button>
+            <button onclick="showSection('books')" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 whitespace-nowrap">📚 الملازم</button>
+            <button onclick="showSection('exams')" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 whitespace-nowrap">📝 الاختبارات</button>
+        </nav>
+
+        <!-- المحتوى الرئيسي والأقسام -->
+        <main class="flex-1 p-4 max-w-4xl mx-auto w-full space-y-4">
+            
+            <!-- شريط البحث الفوري التفاعلي -->
+            <div class="relative">
+                <input type="text" id="search-input" oninput="handleSearch()" placeholder="🔍 ابحث بالكلمات في الأخبار، المحاضرات، أو الملازم..." class="w-full p-3 rounded-xl bg-slate-900 border border-slate-800 text-sm focus:outline-none focus:border-amber-400">
+            </div>
+
+            <!-- قسم الأخبار والتنويهات الأصلي -->
+            <section id="news" class="app-section space-y-3">
+                <div id="news-container" class="space-y-3"></div>
+            </section>
+
+            <!-- قسم المحاضرات الأصلي -->
+            <section id="lectures" class="app-section hidden space-y-3">
+                <div id="lectures-container" class="space-y-3"></div>
+            </section>
+
+            <!-- قسم الملازم الأصلي -->
+            <section id="books" class="app-section hidden space-y-3">
+                <div id="books-container" class="space-y-3"></div>
+            </section>
+
+            <!-- قسم الاختبارات الأصلي -->
+            <section id="exams" class="app-section hidden space-y-3">
+                <div id="exams-container" class="space-y-3"></div>
+            </section>
+
+            <!-- كارت تواصل الطالب المباشر مع المستر الأصلي -->
+            <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-3">
+                <h3 class="font-bold text-amber-400 text-xs">💬 إرسال استفسار أو رسالة للمستر</h3>
+                <form id="student-msg-form" class="space-y-2">
+                    <textarea id="student-msg-text" rows="3" required placeholder="اكتب استفسارك هنا..." class="w-full p-3 rounded-lg bg-slate-800 border border-slate-700 text-xs focus:outline-none focus:border-amber-400"></textarea>
+                    <button type="submit" class="px-4 py-2 bg-amber-400 text-slate-950 font-bold rounded-lg text-xs">إرسال الرسالة</button>
+                </form>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- مودال حساب الطالب الأصلي -->
+    <div id="user-account-modal" class="hidden fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
+        <div class="bg-slate-900 p-6 rounded-2xl max-w-sm w-full border border-slate-800 space-y-4">
+            <h3 class="font-bold text-amber-400 border-b border-slate-800 pb-2">بيانات حسابي</h3>
+            <div id="user-info-card" class="text-xs space-y-1"></div>
+            <div class="p-3 bg-slate-800 rounded-lg space-y-1">
+                <p class="text-[10px] text-slate-400">رد المستر عليك:</p>
+                <p id="user-reply-box" class="text-xs font-bold text-amber-300">-</p>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="logoutUser()" class="flex-1 py-2 bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg text-xs font-bold">تسجيل خروج</button>
+                <button onclick="closeUserAccountModal()" class="flex-1 py-2 bg-slate-800 rounded-lg text-xs font-bold">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- مودال لوحة تحكم الأدمن الشاملة بالرفع والخيارات -->
+    <div id="admin-modal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-slate-900 p-6 rounded-2xl max-w-2xl w-full border border-slate-800 space-y-4 my-8">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-amber-400">👑 لوحة التحكم بالنشر والطلاب</h3>
+                <button onclick="closeAdminModal()" class="text-slate-400 font-bold text-sm">✕</button>
+            </div>
+
+            <!-- تسجيل دخول الأدمن -->
+            <div id="admin-auth" class="space-y-3">
+                <input type="password" id="admin-pass-input" placeholder="كلمة سر الأدمن" class="w-full p-2.5 rounded-lg bg-slate-800 border border-slate-700 text-xs">
+                <div class="flex gap-2">
+                    <button onclick="verifyAdminPass()" class="flex-1 py-2 bg-amber-400 text-slate-950 font-bold rounded-lg text-xs">دخول</button>
+                    <button onclick="loginWithBiometrics()" class="px-3 py-2 bg-slate-800 border border-slate-700 text-xs rounded-lg">👆 بصمة</button>
+                    <button onclick="registerAdminBiometrics()" class="px-3 py-2 bg-slate-800 border border-slate-700 text-xs rounded-lg">⚙️ ربط البصمة</button>
+                </div>
+            </div>
+
+            <!-- محتوى لوحة الأدمن الشامل للمحتوى والرفع المباشر -->
+            <div id="admin-dashboard-content" class="hidden space-y-6">
+                <!-- قسم إضافة وتوجيه النشر -->
+                <div class="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-3">
+                    <h4 class="font-bold text-xs text-amber-400">➕ النشر المباشر والمرفقات في الأقسام</h4>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <select id="admin-target-section" class="p-2.5 rounded-lg bg-slate-800 border border-slate-700 text-xs font-bold text-amber-400">
+                            <option value="news">📢 قسم الأخبار والتنويهات</option>
+                            <option value="lectures">🎥 قسم المحاضرات والشروحات</option>
+                            <option value="books">📚 قسم الملازم والمذكرات</option>
+                            <option value="exams">📝 قسم الاختبارات والأسئلة</option>
+                        </select>
+                        <input type="text" id="admin-news-input" placeholder="اكتب العنوان أو التفاصيل..." class="p-2.5 rounded-lg bg-slate-800 border border-slate-700 text-xs">
+                    </div>
+
+                    <input type="text" id="admin-news-link" placeholder="رابط خارجي (يوتيوب / Google Drive / موقع)" class="w-full p-2.5 rounded-lg bg-slate-800 border border-slate-700 text-xs">
+
+                    <div class="space-y-1">
+                        <label class="text-[10px] text-slate-400">رفع فيديو / صورة / ملف PDF من جهازك مباشرة:</label>
+                        <input type="file" id="admin-news-file" accept="image/*,video/*,application/pdf" class="w-full p-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs text-slate-400">
+                    </div>
+
+                    <button onclick="publishNews()" class="w-full py-2.5 bg-amber-400 text-slate-950 font-bold rounded-lg text-xs hover:bg-amber-300 transition">🚀 نشر المحتوى فوراً</button>
+                </div>
+
+                <!-- جدول إشعارات ورسائل الطلاب الأصلي -->
+                <div class="space-y-2">
+                    <h4 class="font-bold text-xs text-amber-400">👥 رسائل واستفسارات الطلاب</h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right text-xs">
+                            <thead class="bg-slate-800 text-slate-400">
+                                <tr>
+                                    <th class="p-2">الطالب</th>
+                                    <th class="p-2">الصف</th>
+                                    <th class="p-2">الهاتف</th>
+                                    <th class="p-2">الرسالة</th>
+                                    <th class="p-2">الرد الحالي</th>
+                                    <th class="p-2 text-center">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-table-body" class="divide-y divide-slate-800"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
