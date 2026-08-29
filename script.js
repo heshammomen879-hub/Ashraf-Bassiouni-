@@ -592,3 +592,65 @@ async function loginWithBiometrics() {
         }
     } catch (err) { alert('فشل التحقق من البصمة.'); }
 }
+const GITHUB_CONFIG = {
+    owner: "Ashraf-bassiouni", // يتم جلب اسم المستودع تلقائياً
+    repo: "Ashraf-bassiouni",
+    token: "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",
+    filePath: "news.json"
+};
+
+async function publishNewsAutomatically(newsTitle, newsDetails) {
+    if (!newsTitle) {
+        console.warn("عنوان الخبر مطلوب.");
+        return;
+    }
+
+    const apiUrl = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.filePath}`;
+
+    try {
+        // سحب الملف الحالي من السيرفر لمعرفة التحديثات السابقة
+        const fetchResponse = await fetch(apiUrl, {
+            headers: { 'Authorization': `token ${GITHUB_CONFIG.token}` }
+        });
+
+        let existingContent = [];
+        let fileSha = '';
+
+        if (fetchResponse.ok) {
+            const fileData = await fetchResponse.json();
+            existingContent = JSON.parse(decodeURIComponent(escape(atob(fileData.content))));
+            fileSha = fileData.sha;
+        }
+
+        // إضافة الخبر الجديد في المقدمة مع الحفاظ على القديم
+        existingContent.unshift({
+            id: Date.now(),
+            title: newsTitle,
+            text: newsDetails || "",
+            timestamp: new Date().toISOString()
+        });
+
+        // رفع الملف المحدث تلقائياً لكي يظهر للجميع فوراً
+        const updateResponse = await fetch(apiUrl, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${GITHUB_CONFIG.token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: "Automatic update from official portal",
+                content: btoa(unescape(encodeURIComponent(JSON.stringify(existingContent)))),
+                sha: fileSha
+            })
+        });
+
+        if (updateResponse.ok) {
+            console.log("تم النشر بنجاح على المنصة وتحديث البيانات للجميع.");
+        } else {
+            console.error("فشل في إرسال التحديثات للسيرفر.");
+        }
+
+    } catch (err) {
+        console.error("حدث خطأ غير متوقع أثناء الاتصال:", err);
+    }
+}
