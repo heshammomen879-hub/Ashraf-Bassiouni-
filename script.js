@@ -58,8 +58,8 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Check Session & Badges on load
-window.addEventListener('load', () => {
+// Check Session & Load Cloud Data on load
+window.addEventListener('load', async () => {
     const savedUser = JSON.parse(localStorage.getItem('current_user'));
     
     if (savedUser) {
@@ -69,7 +69,7 @@ window.addEventListener('load', () => {
     } else {
         typeWriter();
     }
-    loadNews();
+    await fetchCloudData();
     checkSectionBadges();
 });
 
@@ -122,10 +122,10 @@ function showSection(sectionId) {
     if (badgeMob) badgeMob.classList.add('hidden');
 }
 
-// Registration Submit
+// Registration Submit (Cloud Integrated)
 const regForm = document.getElementById('register-form');
 if (regForm) {
-    regForm.addEventListener('submit', function(e) {
+    regForm.addEventListener('submit', async function(e) {
         e.preventDefault();
 
         const studentData = {
@@ -140,9 +140,8 @@ if (regForm) {
             adminReply: 'أهلاً بك في المنصة'
         };
 
-        let studentsList = JSON.parse(localStorage.getItem('platform_students')) || [];
-        studentsList.push(studentData);
-        localStorage.setItem('platform_students', JSON.stringify(studentsList));
+        // حفظ الطالب سحابياً
+        await addStudentToCloud(studentData);
         localStorage.setItem('current_user', JSON.stringify(studentData));
 
         const introScreen = document.getElementById('intro-screen');
@@ -163,7 +162,7 @@ function checkSectionBadges() {
 
     const currentUser = JSON.parse(localStorage.getItem('current_user'));
     if (!currentUser) return;
-    const studentsList = JSON.parse(localStorage.getItem('platform_students')) || [];
+    const studentsList = window.cloudStudentsList || [];
     const myData = studentsList.find(st => st.phone === currentUser.phone);
     if (myData && myData.hasNewReply) {
         const userNav = document.getElementById('badge-user-nav');
@@ -194,13 +193,13 @@ function openUserAccountModal() {
         `;
     }
 
-    let studentsList = JSON.parse(localStorage.getItem('platform_students')) || [];
+    let studentsList = window.cloudStudentsList || [];
     const myData = studentsList.find(st => st.phone === currentUser.phone);
     if (myData) {
         const replyBox = document.getElementById('user-reply-box');
         if (replyBox) replyBox.textContent = myData.adminReply || 'لا يوجد رد بعد.';
         myData.hasNewReply = false;
-        localStorage.setItem('platform_students', JSON.stringify(studentsList));
+        updateCloudStudents(studentsList);
     }
 }
 
@@ -216,20 +215,20 @@ function logoutUser() {
 
 const studentForm = document.getElementById('student-msg-form');
 if (studentForm) {
-    studentForm.addEventListener('submit', function(e) {
+    studentForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         const msgText = document.getElementById('student-msg-text').value;
         const currentUser = JSON.parse(localStorage.getItem('current_user'));
         if (!currentUser) return;
 
-        let studentsList = JSON.parse(localStorage.getItem('platform_students')) || [];
+        let studentsList = window.cloudStudentsList || [];
         studentsList = studentsList.map(st => {
             if (st.phone === currentUser.phone) st.message = msgText;
             return st;
         });
 
-        localStorage.setItem('platform_students', JSON.stringify(studentsList));
-        alert('تم إرسال الرسالة للأدمن!');
+        await updateCloudStudents(studentsList);
+        alert('تم إرسال الرسالة للأدمن سحابياً!');
         document.getElementById('student-msg-text').value = '';
     });
 }
@@ -261,11 +260,11 @@ function verifyAdminPass() {
     }
 }
 
-function replyToStudent(phone) {
+async function replyToStudent(phone) {
     const replyText = prompt("أدخل رد الأدمن/المستر للطالب:");
     if (!replyText) return;
 
-    let studentsList = JSON.parse(localStorage.getItem('platform_students')) || [];
+    let studentsList = window.cloudStudentsList || [];
     studentsList = studentsList.map(st => {
         if (st.phone === phone) {
             st.adminReply = replyText;
@@ -274,41 +273,41 @@ function replyToStudent(phone) {
         return st;
     });
 
-    localStorage.setItem('platform_students', JSON.stringify(studentsList));
+    await updateCloudStudents(studentsList);
     triggerNotificationAlert();
     loadDashboardData();
 }
 
-function deleteStudentData(phone) {
+async function deleteStudentData(phone) {
     const pass = prompt("أدخل كلمة مرور الأدمن لتأكيد حذف العضو:");
     if (pass !== '1122334455') {
         if (pass !== null) alert('كلمة مرور الأدمن خاطئة!');
         return;
     }
 
-    let studentsList = JSON.parse(localStorage.getItem('platform_students')) || [];
+    let studentsList = window.cloudStudentsList || [];
     studentsList = studentsList.filter(st => st.phone !== phone);
-    localStorage.setItem('platform_students', JSON.stringify(studentsList));
+    await updateCloudStudents(studentsList);
     loadDashboardData();
-    alert('تم حذف العضو من المنصة بنجاح.');
+    alert('تم حذف العضو سحابياً بنجاح.');
 }
 
-function deleteNewsItem(itemId) {
+async function deleteNewsItem(itemId) {
     const pass = prompt("أدخل كلمة مرور الأدمن لحذف هذا المحتوى:");
     if (pass !== '1122334455') {
         if (pass !== null) alert('كلمة مرور الأدمن خاطئة!');
         return;
     }
 
-    let newsList = JSON.parse(localStorage.getItem('platform_news')) || [];
+    let newsList = window.cloudNewsList || [];
     newsList = newsList.filter(item => item.id !== itemId);
-    localStorage.setItem('platform_news', JSON.stringify(newsList));
+    await updateCloudNews(newsList);
     loadNews();
-    alert('تم حذف المحتوى بنجاح.');
+    alert('تم حذف المحتوى من السيرفر بنجاح.');
 }
 
 function loadDashboardData() {
-    const studentsList = JSON.parse(localStorage.getItem('platform_students')) || [];
+    const studentsList = window.cloudStudentsList || [];
     const tableBody = document.getElementById('admin-table-body');
     if (!tableBody) return;
     tableBody.innerHTML = '';
@@ -330,7 +329,7 @@ function loadDashboardData() {
     });
 }
 
-// نشر محتوى واختبارات
+// نشر محتوى سحابياً للجميع
 async function publishNews() {
     const targetSection = document.getElementById('admin-target-section').value;
     const textInput = document.getElementById('admin-news-input');
@@ -398,9 +397,9 @@ async function publishNews() {
         date: formattedDate
     };
 
-    let newsList = JSON.parse(localStorage.getItem('platform_news')) || [];
+    let newsList = window.cloudNewsList || [];
     newsList.unshift(newsItem);
-    localStorage.setItem('platform_news', JSON.stringify(newsList));
+    await updateCloudNews(newsList);
 
     localStorage.setItem(`unviewed_${targetSection}`, 'true');
 
@@ -411,14 +410,14 @@ async function publishNews() {
     if (quizTimerInput) quizTimerInput.value = '';
 
     triggerNotificationAlert();
-    alert('تم نشر المحتوى وتحديث القسم بنجاح!');
+    alert('تم النشر سحابياً وتحديث المنصة لجميع الطلاب بنجاح!');
     loadNews();
     checkSectionBadges();
 }
 
-// عرض المحتوى والبحث
+// عرض المحتوى سحابياً والبحث
 function loadNews(filterKeyword = '') {
-    const rawNewsList = JSON.parse(localStorage.getItem('platform_news')) || [];
+    const rawNewsList = window.cloudNewsList || [];
     const sections = ['news', 'courses', 'pdfs', 'quizzes'];
 
     sections.forEach(sec => {
@@ -518,7 +517,7 @@ function loadNews(filterKeyword = '') {
 }
 
 function submitQuiz(itemId) {
-    const rawNewsList = JSON.parse(localStorage.getItem('platform_news')) || [];
+    const rawNewsList = window.cloudNewsList || [];
     const item = rawNewsList.find(n => n.id === itemId);
     if (!item || !item.questions) return;
 
@@ -590,64 +589,100 @@ async function loginWithBiometrics() {
 }
 
 // ==========================================
-// نظام النشر السحابي التلقائي (GitHub API)
+// نظام السحابة الحقيقي عبر GitHub API (أخبار، اختبارات، وطلاب)
 // ==========================================
 const GITHUB_CONFIG = {
     owner: "Ashraf-bassiouni",
     repo: "Ashraf-bassiouni",
     token: "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",
-    filePath: "news.json"
+    newsFile: "news.json",
+    studentsFile: "students.json"
 };
 
-async function publishNewsAutomatically(newsTitle, newsDetails) {
-    if (!newsTitle) {
-        console.warn("عنوان الخبر مطلوب.");
-        return;
-    }
+window.cloudNewsList = [];
+window.cloudStudentsList = [];
 
-    const apiUrl = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.filePath}`;
-
+// جلب البيانات من السحابة عند فتح المنصة
+async function fetchCloudData() {
     try {
-        const fetchResponse = await fetch(apiUrl, {
-            headers: { 'Authorization': `token ${GITHUB_CONFIG.token}` }
-        });
-
-        let existingContent = [];
-        let fileSha = '';
-
-        if (fetchResponse.ok) {
-            const fileData = await fetchResponse.json();
-            existingContent = JSON.parse(decodeURIComponent(escape(atob(fileData.content))));
-            fileSha = fileData.sha;
+        // جلب الأخبار والمحتوى
+        const newsUrl = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.newsFile}`;
+        const newsRes = await fetch(newsUrl, { headers: { 'Authorization': `token ${GITHUB_CONFIG.token}` } });
+        if (newsRes.ok) {
+            const data = await newsRes.json();
+            window.cloudNewsList = JSON.parse(decodeURIComponent(escape(atob(data.content))));
         }
 
-        existingContent.unshift({
-            id: Date.now(),
-            title: newsTitle,
-            text: newsDetails || "",
-            timestamp: new Date().toISOString()
-        });
+        // جلب بيانات الطلاب والردود
+        const studentsUrl = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.studentsFile}`;
+        const studentsRes = await fetch(studentsUrl, { headers: { 'Authorization': `token ${GITHUB_CONFIG.token}` } });
+        if (studentsRes.ok) {
+            const data = await studentsRes.json();
+            window.cloudStudentsList = JSON.parse(decodeURIComponent(escape(atob(data.content))));
+        }
 
-        const updateResponse = await fetch(apiUrl, {
+        loadNews();
+        checkSectionBadges();
+    } catch (err) {
+        console.error("خطأ في جلب البيانات من السحابة:", err);
+    }
+}
+
+// تحديث ملف الأخبار سحابياً
+async function updateCloudNews(newNewsArray) {
+    const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.newsFile}`;
+    try {
+        const res = await fetch(url, { headers: { 'Authorization': `token ${GITHUB_CONFIG.token}` } });
+        let sha = '';
+        if (res.ok) {
+            const fileData = await res.json();
+            sha = fileData.sha;
+        }
+
+        await fetch(url, {
             method: 'PUT',
-            headers: {
-                'Authorization': `token ${GITHUB_CONFIG.token}`,
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Authorization': `token ${GITHUB_CONFIG.token}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                message: "Automatic update from official portal",
-                content: btoa(unescape(encodeURIComponent(JSON.stringify(existingContent)))),
-                sha: fileSha
+                message: "Update news via cloud portal",
+                content: btoa(unescape(encodeURIComponent(JSON.stringify(newNewsArray)))),
+                sha: sha
             })
         });
+        window.cloudNewsList = newNewsArray;
+    } catch (err) {
+        console.error("فشل تحديث الأخبار سحابياً:", err);
+    }
+}
 
-        if (updateResponse.ok) {
-            console.log("تم النشر بنجاح على المنصة وتحديث البيانات للجميع.");
-        } else {
-            console.error("فشل في إرسال التحديثات للسيرفر.");
+// تحديث ملف الطلاب والردود سحابياً
+async function updateCloudStudents(newStudentsArray) {
+    const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.studentsFile}`;
+    try {
+        const res = await fetch(url, { headers: { 'Authorization': `token ${GITHUB_CONFIG.token}` } });
+        let sha = '';
+        if (res.ok) {
+            const fileData = await res.json();
+            sha = fileData.sha;
         }
 
+        await fetch(url, {
+            method: 'PUT',
+            headers: { 'Authorization': `token ${GITHUB_CONFIG.token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message: "Update students and replies via cloud portal",
+                content: btoa(unescape(encodeURIComponent(JSON.stringify(newStudentsArray)))),
+                sha: sha
+            })
+        });
+        window.cloudStudentsList = newStudentsArray;
     } catch (err) {
-        console.error("حدث خطأ غير متوقع أثناء الاتصال:", err);
+        console.error("فشل تحديث بيانات الطلاب سحابياً:", err);
     }
+}
+
+// إضافة طالب جديد للسحابة مباشرة
+async function addStudentToCloud(studentData) {
+    let students = window.cloudStudentsList || [];
+    students.push(studentData);
+    await updateCloudStudents(students);
 }
