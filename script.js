@@ -14,7 +14,7 @@ function typeWriter() {
     }
 }
 
-// Sound & Vibration Effects (نغمة الرنين والأصوات عند النقر والضغط)
+// Sound & Vibration Effects
 function playClickSound() {
     try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -52,7 +52,6 @@ function triggerNotificationAlert() {
     }
 }
 
-// Global click listener for sound effect on buttons
 document.addEventListener('click', (e) => {
     if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
         playClickSound();
@@ -116,7 +115,6 @@ function showSection(sectionId) {
     const activeSection = document.getElementById(sectionId);
     if (activeSection) activeSection.classList.remove('hidden');
 
-    // إزالة النقطة الحمراء عند زيارة القسم
     localStorage.setItem(`unviewed_${sectionId}`, 'false');
     const badgeNav = document.getElementById(`badge-${sectionId}-nav`);
     const badgeMob = document.getElementById(`badge-${sectionId}-mobile`);
@@ -211,7 +209,10 @@ function closeUserAccountModal() {
     if (modal) modal.classList.add('hidden'); 
 }
 
-function logoutUser() { localStorage.removeItem('current_user'); location.reload(); }
+function logoutUser() { 
+    localStorage.removeItem('current_user'); 
+    location.reload(); 
+}
 
 const studentForm = document.getElementById('student-msg-form');
 if (studentForm) {
@@ -278,7 +279,6 @@ function replyToStudent(phone) {
     loadDashboardData();
 }
 
-// ميزة حذف الأعضاء بكلمة مرور الأدمن
 function deleteStudentData(phone) {
     const pass = prompt("أدخل كلمة مرور الأدمن لتأكيد حذف العضو:");
     if (pass !== '1122334455') {
@@ -293,7 +293,6 @@ function deleteStudentData(phone) {
     alert('تم حذف العضو من المنصة بنجاح.');
 }
 
-// ميزة حذف أي إشعار أو ملف بكلمة مرور الأدمن
 function deleteNewsItem(itemId) {
     const pass = prompt("أدخل كلمة مرور الأدمن لحذف هذا المحتوى:");
     if (pass !== '1122334455') {
@@ -331,7 +330,7 @@ function loadDashboardData() {
     });
 }
 
-// نشر محتوى واختبارات مع نظام الأسئلة التلقائي والمؤقت وتاريخ النشر
+// نشر محتوى واختبارات
 async function publishNews() {
     const targetSection = document.getElementById('admin-target-section').value;
     const textInput = document.getElementById('admin-news-input');
@@ -364,7 +363,6 @@ async function publishNews() {
         return;
     }
 
-    // تنظيم وتحليل الأسئلة تلقائياً للاختبارات
     let parsedQuestions = [];
     if (targetSection === 'quizzes' && quizRaw) {
         const lines = quizRaw.split('\n').filter(l => l.trim() !== '');
@@ -404,7 +402,6 @@ async function publishNews() {
     newsList.unshift(newsItem);
     localStorage.setItem('platform_news', JSON.stringify(newsList));
 
-    // تفعيل النقطة الحمراء للقسم الذي تم النشر فيه
     localStorage.setItem(`unviewed_${targetSection}`, 'true');
 
     if (textInput) textInput.value = '';
@@ -419,7 +416,7 @@ async function publishNews() {
     checkSectionBadges();
 }
 
-// عرض المحتوى وتفعيل البحث في كل الأقسام
+// عرض المحتوى والبحث
 function loadNews(filterKeyword = '') {
     const rawNewsList = JSON.parse(localStorage.getItem('platform_news')) || [];
     const sections = ['news', 'courses', 'pdfs', 'quizzes'];
@@ -520,7 +517,6 @@ function loadNews(filterKeyword = '') {
     });
 }
 
-// تصحيح الاختبار وإظهار النتيجة والنسبة المئوية
 function submitQuiz(itemId) {
     const rawNewsList = JSON.parse(localStorage.getItem('platform_news')) || [];
     const item = rawNewsList.find(n => n.id === itemId);
@@ -592,8 +588,12 @@ async function loginWithBiometrics() {
         }
     } catch (err) { alert('فشل التحقق من البصمة.'); }
 }
+
+// ==========================================
+// نظام النشر السحابي التلقائي (GitHub API)
+// ==========================================
 const GITHUB_CONFIG = {
-    owner: "Ashraf-bassiouni", // يتم جلب اسم المستودع تلقائياً
+    owner: "Ashraf-bassiouni",
     repo: "Ashraf-bassiouni",
     token: "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",
     filePath: "news.json"
@@ -608,7 +608,6 @@ async function publishNewsAutomatically(newsTitle, newsDetails) {
     const apiUrl = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.filePath}`;
 
     try {
-        // سحب الملف الحالي من السيرفر لمعرفة التحديثات السابقة
         const fetchResponse = await fetch(apiUrl, {
             headers: { 'Authorization': `token ${GITHUB_CONFIG.token}` }
         });
@@ -622,7 +621,6 @@ async function publishNewsAutomatically(newsTitle, newsDetails) {
             fileSha = fileData.sha;
         }
 
-        // إضافة الخبر الجديد في المقدمة مع الحفاظ على القديم
         existingContent.unshift({
             id: Date.now(),
             title: newsTitle,
@@ -630,7 +628,6 @@ async function publishNewsAutomatically(newsTitle, newsDetails) {
             timestamp: new Date().toISOString()
         });
 
-        // رفع الملف المحدث تلقائياً لكي يظهر للجميع فوراً
         const updateResponse = await fetch(apiUrl, {
             method: 'PUT',
             headers: {
